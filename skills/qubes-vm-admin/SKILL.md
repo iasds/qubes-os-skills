@@ -50,11 +50,12 @@ Qubes has four VM types. Understanding their persistence behavior is critical:
 ```
 AppVM perspective:
   /home/username       ← persistent (user data)
+  /usr/local           ← persistent (separate volume; clean spot for persistent non-setuid binaries)
   /rw/config           ← persistent (system config)
   /rw/bind-dirs/       ← persistent (bind-dirs backups)
   --------------------
   /etc/                ← ephemeral (lost on reboot)
-  /usr/                ← ephemeral (template overlay)
+  /usr/ (except /usr/local) ← ephemeral (template overlay)
   /                    ← ephemeral (template read-only + overlay)
 ```
 
@@ -91,7 +92,9 @@ binds+=( '/usr/lib/python3' )
 EOF
 
 # 2. Initialize (first run snapshots current state to /rw/bind-dirs/)
-sudo /usr/lib/qubes/bind-dirs.sh
+# Use the init/ path — it exists on every template; the /usr/lib/qubes/bind-dirs.sh
+# shortcut is a Debian-only symlink and is absent on Fedora/Arch templates.
+sudo /usr/lib/qubes/init/bind-dirs.sh
 
 # 3. Verify (must reboot to confirm)
 sudo reboot
@@ -190,7 +193,7 @@ sudo reboot
 ```bash
 mount | grep bind-dirs
 sudo find /rw/bind-dirs/ -maxdepth 3
-sudo /usr/lib/qubes/bind-dirs.sh
+sudo /usr/lib/qubes/init/bind-dirs.sh
 sudo rm -rf /rw/bind-dirs/usr/lib/python3  # force re-init
 ```
 
@@ -244,8 +247,8 @@ sudo apt update && sudo apt upgrade
 qvm-shutdown <appvm> && qvm-start <appvm>
 
 # Create a custom template from existing
+# (cloning a TemplateVM already yields a TemplateVM — no extra step needed)
 qvm-clone debian-13-xfce my-custom-template
-qvm-prefs my-custom-template template True
 ```
 
 ### VM Storage
@@ -254,8 +257,9 @@ qvm-prefs my-custom-template template True
 # Extend private storage
 qvm-volume extend <vm-name>:private 4G
 
-# Resize filesystem inside the VM
-sudo resize2fs /dev/sda2
+# Resize filesystem inside the VM (Qubes private volume is /dev/xvdb, not /dev/sdaN)
+# Often unnecessary — Qubes auto-grows the private volume on boot.
+sudo resize2fs /dev/xvdb
 
 # Check actual disk usage (in dom0)
 sudo lvs -o +data_percent
@@ -312,7 +316,7 @@ Setting `maxmem` too high across many VMs can exhaust dom0 memory. Xen starts sw
 qvm-run <vm-name> "hostname"
 
 # Verify persistence after reboot
-qvm-run --pass-io <vm-name> "cat /etc/qubes-bind-dirs.d/50_myapp.conf"
+qvm-run --pass-io <vm-name> "cat /rw/config/qubes-bind-dirs.d/50_myapp.conf"
 qvm-shutdown <vm-name>
 qvm-start <vm-name>
 qvm-run --pass-io <vm-name> "mount | grep bind-dirs"
@@ -328,6 +332,6 @@ sudo lvs -o +data_percent | head -10
 
 - Official bind-dirs docs: https://www.qubes-os.org/doc/bind-dirs/
 - Official qvm-* docs: https://www.qubes-os.org/doc/how-to-use-qvm-run/
-- Script source: `/usr/lib/qubes/bind-dirs.sh`
+- Script source: `/usr/lib/qubes/init/bind-dirs.sh`
 - For advanced persistence patterns, see `qubes-qrexec` skill
 - For storage management, see `qubes-storage` skill
