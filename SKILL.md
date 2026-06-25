@@ -26,7 +26,7 @@ For the full list see `skills/` or the project README.
 | Need | Skill |
 |------|-------|
 | Understand Qubes architecture / security model | `skills/qubes-basics` |
-| Create, clone, remove VMs, manage persistence | `skills/qubes-vm-admin` |
+| Create, clone, remove VMs, manage persistence | `skills/qubes-vm-admin` ✅ |
 | Set up qrexec RPC services and dom0 policy | `skills/qubes-qrexec` |
 | Configure ProxyVM, firewall, transparent proxy | `skills/qubes-networking` |
 | Set up Windows VMs, PCI passthrough | `skills/qubes-hvm` |

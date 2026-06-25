@@ -19,7 +19,8 @@ Generic Linux knowledge is not enough. These skills encode hard-won experience s
 
 | Skill | Description |
 |-------|-------------|
-| *Coming soon — contributions welcome!* | |
+| **qubes-vm-admin** | VM lifecycle, bind-dirs persistence, template management, dom0 operations |
+| *More coming — contributions welcome!* | |
 
 ## Installation
 
